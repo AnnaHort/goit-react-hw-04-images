@@ -19,7 +19,7 @@ export class App extends Component {
   onSubmit = inputValue => {
     const { query } = this.state;
     if (query === inputValue) {
-      alert('you wrote this word early');
+      alert('you already wrote it');
     }
     this.setState({
       query: inputValue,
