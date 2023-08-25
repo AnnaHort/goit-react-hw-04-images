@@ -24,20 +24,23 @@ const customStyles = {
 
 Modal.setAppElement('#root');
 
-export const ImageGalleryItem = ({imageItem}) => {
-
+export const ImageGalleryItem = ({ imageItem }) => {
   const [modalOpenItem, setModalOpenItem] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const openModal = (itemId) => {
-    setModalOpenItem(itemId);
+  const openModal = itemId => {
     setIsLoading(true);
-  }
 
-const closeModal = () => {
-  setModalOpenItem(null);
-  setIsLoading(false);
-}
+    // Затримка відображення модального вікна на 2 секунди
+    setTimeout(() => {
+      setModalOpenItem(itemId);
+      setIsLoading(false);
+    }, 200);
+  };
+
+  const closeModal = () => {
+    setModalOpenItem(null);
+  };
 
   return (
     <StyledListElContainer>
@@ -58,12 +61,17 @@ const closeModal = () => {
               style={customStyles}
               contentLabel="Example Modal"
             >
-                <StyledModalImg src={largeImageURL} alt={tags} />
-            </Modal>
 
+              {isLoading ? (
+                <div>Loading...</div>
+              ) : (
+                <StyledModalImg src={largeImageURL} alt={tags} />
+              )}
+
+            </Modal>
           </StyledListEl>
         );
       })}
     </StyledListElContainer>
   );
-}
+};
