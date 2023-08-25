@@ -1,85 +1,72 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import { SearchBar } from './SearchBar/Searchbar';
 import { GlobalStyle } from './Global.style';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Button } from './Button/Button';
 import { fetchImages } from './API';
 import { Loader } from './Loader/Loader';
+import { useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    images: [],
-    query: '',
-    page: 1,
-    imagesPerPage: 12,
-    isLoading: false, // стан завантаження для лоадера
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [imagesPerPage] = useState(12);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // #1 функція для передачі значення інпута при сабміті форми
-  onSubmit = inputValue => {
-    const { query } = this.state;
+  const onSubmit = inputValue => {
     if (query === inputValue) {
       alert('you already wrote it');
+    } else {
+      setQuery(inputValue);
+      setImages([]);
+      setPage(1);
+      setIsLoading(false);
     }
-    this.setState({
-      query: inputValue,
-      images: [],
-      page: 1,
-      isLoading: true,
-    });
   };
 
-  // #2 HTTP запит
-  componentDidUpdate = async (prevProps, prevState) => {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.page !== this.state.page
-    ) {
-      this.setState({ isLoading: true }); // початок завантаження
-      console.log(
-        `HTTP запит за ${this.state.query}, сторінка №${this.state.page}`
-      );
-      // Виконуємо HTTP запит та отримуємо зображення
-      const images = await fetchImages({
-        query: this.state.query,
-        page: this.state.page,
-      });
+  useEffect(() => {
+    const fetchData = async () => {
+      if (query === '') return;
+      try {
+        setIsLoading(true);
+        console.log(`HTTP request for ${query}, page ${page}`);
 
-      if (images.length === 0) {
-        alert('No images found.');
+        const images = await fetchImages({ 
+          query: query,
+           page: page });
+
+        if (images.length === 0) {
+          alert('No images found.');
+        }
+
+        setImages(prevImages => [...prevImages, ...images]);
+      } catch (error) {
+        console.error('Error fetching images:', error);
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      // Оновлюємо стан, додаючи нові зображення до попередніх
-      this.setState(prevState => ({
-        images: [...prevState.images, ...images],
-        isLoading: false, // завершення завантаження
-      }));
-    }
+    fetchData();
+  }, [query, page]);
+
+  const handleLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
+    setIsLoading(true);
   };
 
-  // #3 кнопка LoadMore
-  handleLoadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-      isLoading: true, // початок завантаження
-    }));
-  };
-
-  render() {
-    const { images, query, imagesPerPage, isLoading } = this.state;
-
-    return (
-      <section style={{ position: 'relative' }}>
-        <SearchBar onSubmit={this.onSubmit} />
-        <ImageGallery images={images} onImageClick={this.openModal} />
-        {isLoading && <Loader />}
-        {images.length > 0 &&
-          query !== '' &&
-          images.length % imagesPerPage === 0 && (
-            <Button onClick={this.handleLoadMore} />
-          )}
-        <GlobalStyle />
-      </section>
-    );
-  }
-}
+  return (
+    <section style={{ position: 'relative' }}>
+      <SearchBar onSubmit={onSubmit} />
+      <ImageGallery images={images} />
+      {isLoading && <Loader />}
+      {images.length > 0 &&
+        query !== '' &&
+        images.length % imagesPerPage === 0 && (
+          <Button onClick={handleLoadMore} />
+        )}
+      <GlobalStyle />
+    </section>
+  );
+};

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import {
   ImgStyled,
   StyledListEl,
@@ -24,57 +24,46 @@ const customStyles = {
 
 Modal.setAppElement('#root');
 
-export class ImageGalleryItem extends Component {
-  state = {
-    modalOpenItem: null,
-    isLoading: false,
-  };
+export const ImageGalleryItem = ({imageItem}) => {
 
-  openModal = (itemId) => {
-    this.setState({ 
-      modalOpenItem: itemId,
-       isLoading: true });
-  };
+  const [modalOpenItem, setModalOpenItem] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  closeModal = () => {
-    this.setState({ 
-      modalOpenItem: null,
-       isLoading: false });
-  };
-
-  render() {
-    const { imageItem } = this.props;
-    const { modalOpenItem } = this.state;
-
-    return (
-      <StyledListElContainer>
-        {imageItem.map(item => {
-          const { id, webformatURL, tags, largeImageURL } = item;
-
-          return (
-            <StyledListEl key={id}>
-              <ImgStyled
-                src={webformatURL}
-                alt={tags}
-                onClick={() => this.openModal(id)}
-              />
-
-              <Modal
-                isOpen={modalOpenItem === id}
-                onRequestClose={this.closeModal}
-                style={customStyles}
-                contentLabel="Example Modal"
-              >
-                  <StyledModalImg src={largeImageURL} alt={tags} />
-              </Modal>
-
-            </StyledListEl>
-          );
-        })}
-      </StyledListElContainer>
-    );
+  const openModal = (itemId) => {
+    setModalOpenItem(itemId);
+    setIsLoading(true);
   }
+
+const closeModal = () => {
+  setModalOpenItem(null);
+  setIsLoading(false);
 }
 
+  return (
+    <StyledListElContainer>
+      {imageItem.map(item => {
+        const { id, webformatURL, tags, largeImageURL } = item;
 
+        return (
+          <StyledListEl key={id}>
+            <ImgStyled
+              src={webformatURL}
+              alt={tags}
+              onClick={() => openModal(id)}
+            />
 
+            <Modal
+              isOpen={modalOpenItem === id}
+              onRequestClose={closeModal}
+              style={customStyles}
+              contentLabel="Example Modal"
+            >
+                <StyledModalImg src={largeImageURL} alt={tags} />
+            </Modal>
+
+          </StyledListEl>
+        );
+      })}
+    </StyledListElContainer>
+  );
+}
